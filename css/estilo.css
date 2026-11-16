@@ -794,6 +794,144 @@ fieldset {
 .info-resumo dd { margin: 4px 0 0; font-weight: 600; }
 .info-resumo dl { margin: 0; }
 
+/* ---------- Avaliação na feira ---------- */
+
+.seletor-feira { max-width: 520px; margin-bottom: 20px; }
+
+/* Classificação parcial */
+.item-classificacao {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--linha);
+}
+.item-classificacao:last-child { border-bottom: 0; }
+.item-classificacao .item-texto { flex: 1; min-width: 0; }
+.posicao {
+  flex-shrink: 0;
+  width: 44px; height: 44px;
+  display: grid;
+  place-items: center;
+  border-radius: 12px;
+  background: var(--primaria-suave);
+  color: var(--primaria);
+  font-weight: 800;
+}
+.item-classificacao:first-child .posicao {
+  background: var(--destaque);
+  color: #12262C;
+}
+.media { flex-shrink: 0; color: var(--texto-2); font-size: 14px; text-align: right; }
+.media strong { display: block; color: var(--texto); font-size: 22px; font-weight: 800; line-height: 1.1; }
+.nota-rodape { margin: 16px 0 0; }
+
+/* Ficha */
+.ler-resumo {
+  margin-bottom: 22px;
+  border: 1px solid var(--linha);
+  border-radius: 14px;
+}
+.ler-resumo summary {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 16px;
+  color: var(--primaria);
+  font-weight: 700;
+  cursor: pointer;
+}
+.ler-resumo p { padding: 0 16px 16px; line-height: 1.6; }
+
+.escala-legenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin: 4px 0 20px;
+  padding: 12px 16px;
+  border-radius: 12px;
+  background: var(--fundo);
+  color: var(--texto-2);
+  font-size: 14px;
+}
+.escala-legenda strong { color: var(--texto); margin-right: 2px; }
+
+.criterio {
+  padding: 18px 0 4px;
+  border-top: 1px solid var(--linha);
+}
+.criterio legend { float: left; width: 100%; margin-bottom: 4px; }
+.criterio legend + * { clear: both; }
+
+.escala {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(44px, 1fr));
+  gap: 8px;
+  max-width: 420px;
+}
+.nota {
+  position: relative;
+  margin: 0;
+  cursor: pointer;
+}
+/* O botão de rádio fica invisível, mas continua funcionando pelo teclado */
+.nota input {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  margin: 0;
+  cursor: pointer;
+}
+.nota-numero {
+  display: grid;
+  place-items: center;
+  min-height: 48px;
+  border: 1px solid var(--linha);
+  border-radius: var(--raio);
+  background: var(--campo-fundo);
+  font-size: 18px;
+  font-weight: 700;
+}
+.nota:hover .nota-numero { border-color: var(--primaria); }
+.nota input:checked + .nota-numero {
+  border-color: var(--primaria);
+  background: var(--primaria);
+  color: var(--sobre-primaria);
+}
+.nota input:focus-visible + .nota-numero {
+  outline: 3px solid var(--destaque);
+  outline-offset: 2px;
+}
+.criterio[aria-invalid="true"] .nota-numero { border-color: var(--atraso); }
+.nota-texto {
+  min-height: 22px;
+  margin-top: 6px;
+  color: var(--primaria);
+  font-size: 14px;
+  font-weight: 700;
+}
+
+textarea.curto { min-height: 110px; }
+.opcional { color: var(--texto-2); font-weight: 500; }
+
+.total-ficha {
+  margin-top: 20px;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--primaria-suave);
+  color: var(--texto);
+  font-size: 17px;
+}
+.total-ficha .falta { color: var(--texto-2); font-size: 15px; }
+
+.comentario {
+  display: block;
+  margin-top: 4px;
+  color: var(--texto-2);
+  font-size: 14px;
+  font-style: italic;
+}
+
 /* ---------- Aviso flutuante ---------- */
 
 .aviso {
@@ -874,8 +1012,9 @@ fieldset {
   .marca { flex: 1; }
   .principal { order: 3; flex-basis: 100%; }
   .menu { justify-content: space-between; }
-  .menu li { flex: 1; }
-  .menu a { justify-content: center; min-height: 48px; padding: 0 8px; }
+  .menu { gap: 0; }
+  .menu li { flex: 1 1 auto; }
+  .menu a { justify-content: center; min-height: 48px; padding: 0 2px; font-size: 15px; }
 
   .indicadores { grid-template-columns: 1fr; gap: 12px; }
   .indicador .valor { font-size: 32px; }

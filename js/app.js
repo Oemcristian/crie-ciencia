@@ -12,27 +12,34 @@ const ROTAS = {
   inscricao:  { titulo: 'Inscrição na feira',   desenhar: telaInscricao,  menu: 'cadastros' },
   resumo:     { titulo: 'Envio de resumo',      desenhar: telaResumo,     menu: 'cadastros' },
   pendencias: { titulo: 'Pendências',           desenhar: telaPendencias, menu: 'pendencias' },
-  documentos: { titulo: 'Envio de documentos',  desenhar: telaDocumentos, menu: 'pendencias' }
+  documentos: { titulo: 'Envio de documentos',  desenhar: telaDocumentos, menu: 'pendencias' },
+  avaliacao:  { titulo: 'Avaliação na feira',   desenhar: telaAvaliacao,  menu: 'avaliacao' },
+  avaliar:    { titulo: 'Ficha de avaliação',   desenhar: telaAvaliar,    menu: 'avaliacao' }
 };
 
-// "#resumo/pr-solar" -> { nome: 'resumo', param: 'pr-solar' }
+// "#resumo/pr-solar"        -> { nome: 'resumo', param: 'pr-solar', param2: '' }
+// "#avaliar/in-solar/av-1"  -> { nome: 'avaliar', param: 'in-solar', param2: 'av-1' }
 function lerRota() {
   const partes = location.hash.replace(/^#\/?/, '').split('/');
   const nome = ROTAS[partes[0]] ? partes[0] : 'painel';
-  return { nome, param: decodeURIComponent(partes[1] || '') };
+  return {
+    nome,
+    param: decodeURIComponent(partes[1] || ''),
+    param2: decodeURIComponent(partes[2] || '')
+  };
 }
 
 function mostrarTela(mudouDePagina) {
-  const { nome, param } = lerRota();
+  const { nome, param, param2 } = lerRota();
   const rota = ROTAS[nome];
   const area = document.getElementById('conteudo');
 
-  rota.desenhar(area, param);
+  rota.desenhar(area, param, param2);
   document.title = `${rota.titulo} · crie.Ciência`;
   atualizarCabecalho(rota.menu, nome);
 
   if (mudouDePagina) {
-    registrar('abriu tela ' + nome + (param ? '/' + param : ''));
+    registrar('abriu tela ' + nome + (param ? '/' + param : '') + (param2 ? '/' + param2 : ''));
     window.scrollTo(0, 0);
     // Leva o foco ao título para quem usa teclado ou leitor de tela
     area.querySelector('h1')?.focus({ preventScroll: true });

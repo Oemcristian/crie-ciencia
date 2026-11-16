@@ -24,12 +24,19 @@ js/interface.js   funções de apoio: campos, chips, validação, máscaras, avi
 js/telas.js       uma função para cada tela do sistema
 js/app.js         rotas (#painel, #alunos...) e modo de teste
 img/logo.svg      ícone do sistema
-docs/             explicação técnica e guia de publicação
+docs/             explicação técnica, tecnologias, roteiro de uso e guia de publicação
 ```
 
 ## Telas
 
-Painel, Meu cadastro, Alunos, Equipe, Projeto, Inscrição na feira, Resumo, Pendências e Documentos.
+Painel, Meu cadastro, Alunos, Equipe, Projeto, Inscrição na feira, Resumo, Pendências, Documentos e Avaliação na feira (ficha de avaliação e classificação).
+
+## Documentação
+
+- [Roteiro de uso](docs/ROTEIRO-DE-USO.md): passo a passo para professores e avaliadores
+- [Tecnologias](docs/TECNOLOGIAS.md): cada tecnologia usada, explicada para o TCC
+- [Explicação técnica](docs/EXPLICACAO-TECNICA.md): arquitetura, dados e regras
+- [Guia do GitHub](docs/GUIA-GITHUB.md): como publicar alterações
 
 ## Modo de teste
 

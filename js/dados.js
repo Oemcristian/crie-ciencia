@@ -35,6 +35,20 @@ const TIPOS_DOCUMENTO = [
 
 const TIPOS_ARQUIVO = ['pdf', 'jpg', 'jpeg', 'png'];
 
+// Ficha de avaliação usada no dia da feira.
+// Cada critério recebe uma nota de 1 a 5; a pontuação da ficha é a soma (máximo 25).
+const CRITERIOS_AVALIACAO = [
+  { id: 'criatividade', nome: 'Criatividade e inovação', pergunta: 'A ideia é original ou traz um jeito novo de resolver o problema?' },
+  { id: 'metodo', nome: 'Método científico', pergunta: 'A equipe fez uma pergunta, testou, registrou e analisou os resultados?' },
+  { id: 'dominio', nome: 'Domínio do conteúdo', pergunta: 'Os alunos explicam o projeto com segurança e respondem às perguntas?' },
+  { id: 'apresentacao', nome: 'Apresentação e comunicação', pergunta: 'O estande, o banner e a fala da equipe são claros e organizados?' },
+  { id: 'relevancia', nome: 'Relevância para a comunidade', pergunta: 'O projeto trata de um problema real e pode ser aplicado?' }
+];
+
+const ESCALA_AVALIACAO = ['Insuficiente', 'Regular', 'Bom', 'Muito bom', 'Excelente'];
+
+const PONTUACAO_MAXIMA = CRITERIOS_AVALIACAO.length * ESCALA_AVALIACAO.length;
+
 // As feiras são cadastradas pela organização do evento.
 // Enquanto não existe o perfil de organizador, elas já vêm prontas.
 // Nomes e datas são ilustrativos.
@@ -73,6 +87,8 @@ function bancoVazio() {
     inscricoes: [],
     resumos: [],
     documentos: [],
+    avaliacoes: [],
+    ultimoAvaliador: '',
     registro: []
   };
 }
@@ -146,6 +162,18 @@ function bancoExemplo() {
     { equipeId: 'eq-solar', tipo: 'termo', arquivoNome: 'termo-imagem-solar.pdf', tamanho: 291004, data: '2026-10-25T09:02:00' },
     { equipeId: 'eq-solar', tipo: 'autorizacao', arquivoNome: 'autorizacoes-solar.jpg', tamanho: 1350022, data: '2026-10-25T09:05:00' },
     { equipeId: 'eq-mare', tipo: 'ficha', arquivoNome: 'ficha-mare.pdf', tamanho: 512870, data: '2026-10-28T16:20:00' }
+  ];
+
+  // Uma ficha já preenchida, para mostrar como fica a classificação
+  banco.avaliacoes = [
+    {
+      id: 'av-solar-1',
+      inscricaoId: 'in-solar',
+      avaliador: 'Roberto Alves',
+      notas: { criatividade: 4, metodo: 5, dominio: 4, apresentacao: 4, relevancia: 5 },
+      comentario: 'Equipe segura na explicação. Sugiro mostrar a tabela de temperaturas em um gráfico.',
+      data: '2026-11-10T10:30:00'
+    }
   ];
 
   return banco;
@@ -250,6 +278,42 @@ function resumoDoProjeto(projetoId) {
 
 function documentosDaEquipe(equipeId) {
   return db.documentos.filter(d => d.equipeId === equipeId);
+}
+
+/* ---------- Avaliação na feira ---------- */
+
+function inscricoesDaFeira(feiraId) {
+  return db.inscricoes.filter(i => i.feiraId === feiraId);
+}
+
+function avaliacoesDaInscricao(inscricaoId) {
+  return db.avaliacoes.filter(a => a.inscricaoId === inscricaoId);
+}
+
+// Soma das notas de uma ficha (de 5 a 25)
+function pontuacao(avaliacao) {
+  return CRITERIOS_AVALIACAO.reduce((soma, c) => soma + (Number(avaliacao.notas[c.id]) || 0), 0);
+}
+
+// Média das fichas de um projeto na feira, ou null se ninguém avaliou ainda
+function mediaDaInscricao(inscricaoId) {
+  const fichas = avaliacoesDaInscricao(inscricaoId);
+  if (fichas.length === 0) return null;
+  return fichas.reduce((soma, a) => soma + pontuacao(a), 0) / fichas.length;
+}
+
+// Projetos avaliados, do maior para o menor média.
+// Empate: fica na frente quem recebeu mais fichas.
+function classificacao(feiraId) {
+  return inscricoesDaFeira(feiraId)
+    .map(i => ({ inscricao: i, media: mediaDaInscricao(i.id), fichas: avaliacoesDaInscricao(i.id).length }))
+    .filter(item => item.media !== null)
+    .sort((a, b) => b.media - a.media || b.fichas - a.fichas);
+}
+
+// "21.5" -> "21,5"; "21" -> "21"
+function numeroBR(n) {
+  return (Math.round(n * 10) / 10).toString().replace('.', ',');
 }
 
 // Entre as feiras em que a equipe está inscrita, pega o prazo que vence primeiro
