@@ -34,9 +34,6 @@ Painel, Meu cadastro, Alunos, Equipe, Projeto, Inscrição na feira, Resumo, Pen
 ## Documentação
 
 - [Roteiro de uso](docs/ROTEIRO-DE-USO.md): passo a passo para professores e avaliadores
-- [Tecnologias](docs/TECNOLOGIAS.md): cada tecnologia usada, explicada para o TCC
-- [Explicação técnica](docs/EXPLICACAO-TECNICA.md): arquitetura, dados e regras
-- [Guia do GitHub](docs/GUIA-GITHUB.md): como publicar alterações
 
 ## Modo de teste
 
