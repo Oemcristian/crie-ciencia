@@ -22,18 +22,17 @@ css/estilo.css    cores, fontes e aparência de todos os componentes
 js/dados.js       armazenamento, dados de exemplo e regras (pendências, prazos)
 js/interface.js   funções de apoio: campos, chips, validação, máscaras, avisos
 js/telas.js       uma função para cada tela do sistema
+js/avaliacao.js   telas do perfil de avaliador da feira
 js/app.js         rotas (#painel, #alunos...) e modo de teste
 img/logo.svg      ícone do sistema
-docs/             explicação técnica, tecnologias, roteiro de uso e guia de publicação
+docs/             explicação técnica e guia de publicação
 ```
 
 ## Telas
 
-Painel, Meu cadastro, Alunos, Equipe, Projeto, Inscrição na feira, Resumo, Pendências, Documentos e Avaliação na feira (ficha de avaliação e classificação).
+Professor: Painel, Meu cadastro, Alunos, Equipe, Projeto, Inscrição na feira, Resumo, Pendências e Documentos.
 
-## Documentação
-
-- [Roteiro de uso](docs/ROTEIRO-DE-USO.md): passo a passo para professores e avaliadores
+Avaliador da feira: Projetos para avaliar (`#avaliacoes`) e Ficha de avaliação (`#ficha/<inscrição>`). Para entrar nesse perfil, use o link "Ver como avaliador da feira" no rodapé.
 
 ## Modo de teste
 

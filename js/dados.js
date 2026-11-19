@@ -35,20 +35,6 @@ const TIPOS_DOCUMENTO = [
 
 const TIPOS_ARQUIVO = ['pdf', 'jpg', 'jpeg', 'png'];
 
-// Ficha de avaliação usada no dia da feira.
-// Cada critério recebe uma nota de 1 a 5; a pontuação da ficha é a soma (máximo 25).
-const CRITERIOS_AVALIACAO = [
-  { id: 'criatividade', nome: 'Criatividade e inovação', pergunta: 'A ideia é original ou traz um jeito novo de resolver o problema?' },
-  { id: 'metodo', nome: 'Método científico', pergunta: 'A equipe fez uma pergunta, testou, registrou e analisou os resultados?' },
-  { id: 'dominio', nome: 'Domínio do conteúdo', pergunta: 'Os alunos explicam o projeto com segurança e respondem às perguntas?' },
-  { id: 'apresentacao', nome: 'Apresentação e comunicação', pergunta: 'O estande, o banner e a fala da equipe são claros e organizados?' },
-  { id: 'relevancia', nome: 'Relevância para a comunidade', pergunta: 'O projeto trata de um problema real e pode ser aplicado?' }
-];
-
-const ESCALA_AVALIACAO = ['Insuficiente', 'Regular', 'Bom', 'Muito bom', 'Excelente'];
-
-const PONTUACAO_MAXIMA = CRITERIOS_AVALIACAO.length * ESCALA_AVALIACAO.length;
-
 // As feiras são cadastradas pela organização do evento.
 // Enquanto não existe o perfil de organizador, elas já vêm prontas.
 // Nomes e datas são ilustrativos.
@@ -61,7 +47,8 @@ const FEIRAS_PADRAO = [
     prazoInscricao: '2027-03-31',
     prazoResumo: '2027-04-16',
     prazoDocumentos: '2027-04-30',
-    data: '2027-05-18'
+    data: '2027-05-18',
+    fim: '2027-05-19'
   },
   {
     id: 'mostra-regional',
@@ -71,7 +58,8 @@ const FEIRAS_PADRAO = [
     prazoInscricao: '2027-07-30',
     prazoResumo: '2027-08-13',
     prazoDocumentos: '2027-08-27',
-    data: '2027-09-23'
+    data: '2027-09-23',
+    fim: '2027-09-25'
   }
 ];
 
@@ -87,10 +75,29 @@ function bancoVazio() {
     inscricoes: [],
     resumos: [],
     documentos: [],
-    avaliacoes: [],
-    ultimoAvaliador: '',
+    // Perfil de avaliador: quem avalia, quais inscrições recebeu e as fichas
+    avaliador: null,
+    alocacoes: [],     // { inscricaoId } distribuídas pela organização
+    avaliacoes: [],    // { inscricaoId, notas{}, comentario, enviada, data }
     registro: []
   };
+}
+
+// Avaliador fictício. A organização distribuiu para ele as duas inscrições
+// da feira municipal. A ficha da Equipe Maré já começou como rascunho.
+function exemploAvaliacao(banco) {
+  banco.avaliador = {
+    nome: 'Roberto Alves',
+    email: 'roberto.alves@exemplo.com',
+    instituicao: 'Universidade (avaliador convidado)',
+    area: 'Engenharias'
+  };
+  banco.alocacoes = banco.inscricoes
+    .filter(i => i.feiraId === 'feira-municipal')
+    .map(i => ({ inscricaoId: i.id }));
+  banco.avaliacoes = banco.inscricoes.some(i => i.id === 'in-mare')
+    ? [{ inscricaoId: 'in-mare', notas: { problema: 4, metodo: 3 }, comentario: '', enviada: false, data: '2026-11-10T15:00:00' }]
+    : [];
 }
 
 // Dados fictícios usados nos testes de usabilidade.
@@ -164,18 +171,7 @@ function bancoExemplo() {
     { equipeId: 'eq-mare', tipo: 'ficha', arquivoNome: 'ficha-mare.pdf', tamanho: 512870, data: '2026-10-28T16:20:00' }
   ];
 
-  // Uma ficha já preenchida, para mostrar como fica a classificação
-  banco.avaliacoes = [
-    {
-      id: 'av-solar-1',
-      inscricaoId: 'in-solar',
-      avaliador: 'Roberto Alves',
-      notas: { criatividade: 4, metodo: 5, dominio: 4, apresentacao: 4, relevancia: 5 },
-      comentario: 'Equipe segura na explicação. Sugiro mostrar a tabela de temperaturas em um gráfico.',
-      data: '2026-11-10T10:30:00'
-    }
-  ];
-
+  exemploAvaliacao(banco);
   return banco;
 }
 
@@ -188,7 +184,17 @@ function carregar() {
     const texto = localStorage.getItem(CHAVE_ARMAZENAMENTO);
     if (texto) {
       // Object.assign garante que campos novos existam mesmo em dados antigos
-      return Object.assign(bancoVazio(), JSON.parse(texto));
+      const salvo = JSON.parse(texto);
+      const banco = Object.assign(bancoVazio(), salvo);
+      // Dados gravados antes do perfil de avaliador: cria o avaliador de exemplo
+      if (!('avaliador' in salvo)) {
+        exemploAvaliacao(banco);
+        banco.feiras.forEach(f => {
+          const padrao = FEIRAS_PADRAO.find(p => p.id === f.id);
+          if (padrao && !f.fim) f.fim = padrao.fim;
+        });
+      }
+      return banco;
     }
   } catch (erro) {
     console.warn('Não foi possível ler os dados salvos.', erro);
@@ -278,42 +284,6 @@ function resumoDoProjeto(projetoId) {
 
 function documentosDaEquipe(equipeId) {
   return db.documentos.filter(d => d.equipeId === equipeId);
-}
-
-/* ---------- Avaliação na feira ---------- */
-
-function inscricoesDaFeira(feiraId) {
-  return db.inscricoes.filter(i => i.feiraId === feiraId);
-}
-
-function avaliacoesDaInscricao(inscricaoId) {
-  return db.avaliacoes.filter(a => a.inscricaoId === inscricaoId);
-}
-
-// Soma das notas de uma ficha (de 5 a 25)
-function pontuacao(avaliacao) {
-  return CRITERIOS_AVALIACAO.reduce((soma, c) => soma + (Number(avaliacao.notas[c.id]) || 0), 0);
-}
-
-// Média das fichas de um projeto na feira, ou null se ninguém avaliou ainda
-function mediaDaInscricao(inscricaoId) {
-  const fichas = avaliacoesDaInscricao(inscricaoId);
-  if (fichas.length === 0) return null;
-  return fichas.reduce((soma, a) => soma + pontuacao(a), 0) / fichas.length;
-}
-
-// Projetos avaliados, do maior para o menor média.
-// Empate: fica na frente quem recebeu mais fichas.
-function classificacao(feiraId) {
-  return inscricoesDaFeira(feiraId)
-    .map(i => ({ inscricao: i, media: mediaDaInscricao(i.id), fichas: avaliacoesDaInscricao(i.id).length }))
-    .filter(item => item.media !== null)
-    .sort((a, b) => b.media - a.media || b.fichas - a.fichas);
-}
-
-// "21.5" -> "21,5"; "21" -> "21"
-function numeroBR(n) {
-  return (Math.round(n * 10) / 10).toString().replace('.', ',');
 }
 
 // Entre as feiras em que a equipe está inscrita, pega o prazo que vence primeiro

@@ -13,33 +13,29 @@ const ROTAS = {
   resumo:     { titulo: 'Envio de resumo',      desenhar: telaResumo,     menu: 'cadastros' },
   pendencias: { titulo: 'Pendências',           desenhar: telaPendencias, menu: 'pendencias' },
   documentos: { titulo: 'Envio de documentos',  desenhar: telaDocumentos, menu: 'pendencias' },
-  avaliacao:  { titulo: 'Avaliação na feira',   desenhar: telaAvaliacao,  menu: 'avaliacao' },
-  avaliar:    { titulo: 'Ficha de avaliação',   desenhar: telaAvaliar,    menu: 'avaliacao' }
+  // Perfil de avaliador
+  avaliacoes: { titulo: 'Projetos para avaliar', desenhar: telaAvaliacoes, menu: 'avaliacoes', perfil: 'avaliador' },
+  ficha:      { titulo: 'Ficha de avaliação',    desenhar: telaFicha,      menu: 'avaliacoes', perfil: 'avaliador' }
 };
 
-// "#resumo/pr-solar"        -> { nome: 'resumo', param: 'pr-solar', param2: '' }
-// "#avaliar/in-solar/av-1"  -> { nome: 'avaliar', param: 'in-solar', param2: 'av-1' }
+// "#resumo/pr-solar" -> { nome: 'resumo', param: 'pr-solar' }
 function lerRota() {
   const partes = location.hash.replace(/^#\/?/, '').split('/');
   const nome = ROTAS[partes[0]] ? partes[0] : 'painel';
-  return {
-    nome,
-    param: decodeURIComponent(partes[1] || ''),
-    param2: decodeURIComponent(partes[2] || '')
-  };
+  return { nome, param: decodeURIComponent(partes[1] || '') };
 }
 
 function mostrarTela(mudouDePagina) {
-  const { nome, param, param2 } = lerRota();
+  const { nome, param } = lerRota();
   const rota = ROTAS[nome];
   const area = document.getElementById('conteudo');
 
-  rota.desenhar(area, param, param2);
+  rota.desenhar(area, param);
   document.title = `${rota.titulo} · crie.Ciência`;
-  atualizarCabecalho(rota.menu, nome);
+  atualizarCabecalho(rota.menu, nome, rota.perfil || 'professor');
 
   if (mudouDePagina) {
-    registrar('abriu tela ' + nome + (param ? '/' + param : '') + (param2 ? '/' + param2 : ''));
+    registrar('abriu tela ' + nome + (param ? '/' + param : ''));
     window.scrollTo(0, 0);
     // Leva o foco ao título para quem usa teclado ou leitor de tela
     area.querySelector('h1')?.focus({ preventScroll: true });
@@ -53,7 +49,16 @@ function redesenhar() {
   window.scrollTo(0, rolagem);
 }
 
-function atualizarCabecalho(menuAtivo, nomeRota) {
+function atualizarCabecalho(menuAtivo, nomeRota, perfil) {
+  // Cada perfil vê só o seu menu
+  document.querySelectorAll('[data-perfil]').forEach(item => {
+    item.hidden = item.dataset.perfil !== perfil;
+  });
+  document.querySelector('.marca').setAttribute('href', perfil === 'avaliador' ? '#avaliacoes' : '#painel');
+  const trocar = document.getElementById('trocar-perfil');
+  trocar.textContent = perfil === 'avaliador' ? 'Voltar ao perfil de professor' : 'Ver como avaliador da feira';
+  trocar.setAttribute('href', perfil === 'avaliador' ? '#painel' : '#avaliacoes');
+
   document.querySelectorAll('[data-menu]').forEach(link => {
     const ativo = link.dataset.menu === menuAtivo;
     link.classList.toggle('ativo', ativo);
@@ -62,6 +67,17 @@ function atualizarCabecalho(menuAtivo, nomeRota) {
   });
 
   const avatar = document.getElementById('avatar');
+  if (perfil === 'avaliador') {
+    const partes = (db.avaliador?.nome || '').split(/\s+/).filter(Boolean);
+    avatar.textContent = partes.length ? (partes[0][0] + partes[partes.length - 1][0]).toUpperCase() : '?';
+    avatar.setAttribute('aria-label', `Avaliador: ${db.avaliador?.nome || 'sem nome'}`);
+    avatar.setAttribute('href', '#avaliacoes');
+    avatar.classList.remove('ativo');
+    avatar.classList.add('avaliador');
+    return;
+  }
+  avatar.setAttribute('href', '#professor');
+  avatar.classList.remove('avaliador');
   const nome = db.professor?.nome || '';
   const iniciais = nome.split(/\s+/).filter(Boolean);
   avatar.textContent = iniciais.length

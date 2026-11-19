@@ -30,6 +30,7 @@ Motivos da escolha:
 | `js/dados.js` | Leitura e gravação no navegador, dados de exemplo, consultas entre entidades, cálculo de pendências e funções de data |
 | `js/interface.js` | Funções reaproveitadas pelas telas: montar campos, chips, validação, máscaras de data e telefone, aviso flutuante |
 | `js/telas.js` | Uma função para cada tela (`telaPainel`, `telaAlunos`, `telaEquipes` etc.) |
+| `js/avaliacao.js` | Telas do perfil de avaliador da feira (`telaAvaliacoes` e `telaFicha`), critérios da ficha e cálculo da nota |
 | `js/app.js` | Roteamento (qual tela mostrar), destaque do menu, modo de teste e inicialização |
 
 A divisão segue a ideia de **separação de responsabilidades**: dados e regras de negócio ficam separados da forma como são exibidos. Isso facilita a próxima etapa, em que `dados.js` será trocado por chamadas a um servidor sem precisar reescrever as telas.
@@ -128,6 +129,29 @@ Cada pendência guarda o prazo da feira correspondente e o endereço da tela ond
 Como a lista é recalculada a cada vez que uma tela é aberta, ela está sempre de acordo com os cadastros. A mesma função alimenta o indicador do painel, a coluna de ação da tabela "Minhas equipes" e a tela de pendências, com as abas Todas, Resumos e Documentos.
 
 A situação de cada prazo é mostrada com chips: "Prazo encerrado" ou "Vence hoje" (vermelho), "Vence em X dias" quando faltam até 7 dias (âmbar) e a data quando ainda há folga (neutro).
+
+## 6.1 Perfil de avaliador da feira
+
+O protótipo tem um segundo perfil, o do avaliador. Como ainda não existe login, o perfil é escolhido pela rota: `#avaliacoes` e `#ficha/<id da inscrição>` têm `perfil: 'avaliador'` na tabela `ROTAS` do `app.js`. Ao abrir uma dessas telas, o cabeçalho esconde o menu do professor, mostra só "Avaliações" e pinta o avatar de âmbar. O link no rodapé alterna entre os dois perfis.
+
+Dados novos em `dados.js`:
+
+```
+avaliador   { nome, email, instituicao, area }
+alocacoes   [{ inscricaoId }]                    // projetos distribuídos ao avaliador
+avaliacoes  [{ inscricaoId, notas{}, comentario, enviada, data }]
+```
+
+A avaliação se liga à **inscrição**, e não ao projeto, porque o mesmo projeto pode ir a duas feiras e receber notas diferentes em cada uma. A distribuição dos projetos (alocações) será feita pelo organizador da feira numa etapa futura; por enquanto ela vem pronta nos dados de exemplo. Quem já tinha dados salvos antes dessa mudança recebe o avaliador de exemplo automaticamente na função `carregar()`.
+
+Regras da ficha (`js/avaliacao.js`):
+
+- seis critérios (lista `CRITERIOS`), cada um com nota de 1 a 5 mostrada como número e palavra (Insuficiente a Excelente);
+- nota final de 0 a 10 = soma das notas ÷ 30 × 10, calculada só quando os seis critérios estão marcados;
+- o rascunho pode ser salvo com critérios em branco; para enviar, todos precisam de nota, e cada um que falta recebe uma mensagem;
+- depois de enviada, a ficha pode ser corrigida até o último dia da feira (campo `fim` da feira); depois disso fica só para leitura.
+
+No celular, a escala de 1 a 5 vira uma lista vertical, para que as palavras não sejam cortadas e cada opção tenha pelo menos 48 px de altura.
 
 ## 7. Interface e decisões de usabilidade
 
